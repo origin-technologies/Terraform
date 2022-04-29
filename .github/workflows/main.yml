@@ -22,9 +22,9 @@ jobs:
           tf_vars_file: "config-dev.tfvars"         
           tf_key: "state"                
           enable_TFSEC: false                       
-          az_resource_group: "resource-group-name" ## (Required) AZ backend - AZURE Resource Group hosting terraform backend storage account
-          az_storage_acc: "storage-account-name"   ## (Required) AZ backend - AZURE terraform backend storage account
-          az_container_name: "container-name"      ## (Required) AZ backend - AZURE storage container hosting state files 
+          az_resource_group: "rg-training-dev" 
+          az_storage_acc: "sampletraininguk"  
+          az_container_name: "container1"   
           arm_client_id: ${{ secrets.ARM_CLIENT_ID }}              
           arm_client_secret: ${{ secrets.ARM_CLIENT_SECRET }}     
           arm_subscription_id: ${{ secrets.ARM_SUBSCRIPTION_ID }} 
