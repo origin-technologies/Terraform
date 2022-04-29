@@ -15,6 +15,9 @@ jobs:
       CONTAINER_NAME: "container1"
 
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: "./Folder/"
     steps:
     - uses: actions/checkout@v2
     - uses: hashicorp/setup-terraform@v2
