@@ -2,8 +2,8 @@ name: 'Terraform'
 on:
   workflow_dispatch:
 jobs:
-  terraform:
-    name: 'Terraform'
+  plan:
+    name: 'Plan'
     env:
       ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
       ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
@@ -51,3 +51,46 @@ jobs:
         name: "deploy"
         path: "./Folder/deploy.zip"
         retention-days: 5
+        
+  apply:
+    name: 'Apply'
+    env:
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+
+      RESOURCE_GROUP: "rg-training-dev"
+      STORAGE_ACCOUNT: "sampletraininguk"
+      CONTAINER_NAME: "container1"
+
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: "./Folder/"
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Download Artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: "deploy"
+        path: deploy/staging
+
+    - name: Decompress TF Plan artifact
+      shell: bash
+      run: unzip deploy.zip
+      working-directory: $deploy/staging
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2.0.0
+
+    - name: Terraform Init
+      id: init
+      run: terraform init -backend-config="storage_account_name=$STORAGE_ACCOUNT" -backend-config="container_name=$CONTAINER_NAME" -backend-config="resource_group_name=$RESOURCE_GROUP"
+      working-directory: deploy/staging
+
+    - name: Terraform Apply Deploy
+      shell: bash
+      run: terraform apply deploy_plan.tfplan
+      working-directory: deploy/staging
