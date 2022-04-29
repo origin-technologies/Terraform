@@ -1,4 +1,4 @@
-name: 'Terraform'
+name: 'ManagedIdentity'
 on:
   workflow_dispatch:
 jobs:
