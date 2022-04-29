@@ -81,7 +81,7 @@ jobs:
     - name: Decompress TF Plan artifact
       shell: bash
       run: unzip deploy.zip
-      working-directory: $deploy/staging
+      working-directory: deploy/staging
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2.0.0
