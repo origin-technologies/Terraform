@@ -11,21 +11,19 @@ resource "azurerm_application_insights" "sst_appinsights" {
   application_type    = "web"
   tags = local.common_tags
 }
-resource "azurerm_app_service_plan" "sst_app_service_plan" {  
+resource "azurerm_service_plan" "sst_app_service_plan" {  
   name                = "asp-${var.name}-${var.environment}-001"  
   location            = azurerm_resource_group.sst_resource_group.location  
   resource_group_name = azurerm_resource_group.sst_resource_group.name  
-  sku {  
-    tier = "Standard"  
-    size = "S1"  
-  }  
+  os_type             = "Linux"
+  sku_name            = "P1v2"
   tags = local.common_tags
 }  
 resource "azurerm_app_service" "sst_app_service" {  
   name                = "was-${var.name}-${var.environment}-001"  
   location            = azurerm_resource_group.sst_resource_group.location
   resource_group_name = azurerm_resource_group.sst_resource_group.name  
-  app_service_plan_id = azurerm_app_service_plan.sst_app_service_plan.id  
+  app_service_plan_id = azurerm_service_plan.sst_app_service_plan.id  
   app_settings = {
     "WEBSITE_RUN_FROM_PACKAGE"              = 1
     "APPINSIGHTS_INSTRUMENTATIONKEY"        = azurerm_application_insights.sst_appinsights.instrumentation_key
