@@ -51,8 +51,9 @@ jobs:
         name: "deploy"
         path: "./Folder/deploy.zip"
         retention-days: 5
-        
+
   apply:
+    needs: plan
     name: 'Apply'
     env:
       ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
