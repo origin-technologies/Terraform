@@ -41,7 +41,6 @@ jobs:
       continue-on-error: true
       
     - name: PR Plan Deploy
-      if: ${{ inputs.plan_mode == 'deploy' && github.event_name == 'pull_request' }}
       uses: robburger/terraform-pr-commenter@v1
       with:
         commenter_type: plan
