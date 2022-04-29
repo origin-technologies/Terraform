@@ -42,7 +42,8 @@ jobs:
         
     - name: Compress TF Plan artifact
       shell: bash
-      run: zip -r ./Folder/deploy.zip ./Folder/*
+      run: zip -r deploy.zip ./*
+      working-directory: ./Folder/
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v3
