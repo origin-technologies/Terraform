@@ -12,7 +12,7 @@ jobs:
       - name: Dev TF Plan
         uses: Pwd9000-ML/terraform-azurerm-plan@v1.2.3
         with:
-          path: "./Folder"                 
+          path: "./Folder/"                 
           plan_mode: "deploy"                     
           tf_version: "latest"                     
           tf_vars_file: "config-dev.tfvars"         
