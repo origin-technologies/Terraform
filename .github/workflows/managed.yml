@@ -35,35 +35,35 @@ jobs:
       id: fmt
       run: terraform fmt -check
       continue-on-error: true
-      working-directory: ${{ TERRAFORM_SCRIPTS_PATH }}
+      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
 
     - name: Terraform Init
       id: init
       run: terraform init -backend-config="storage_account_name=$STORAGE_ACCOUNT" -backend-config="container_name=$CONTAINER_NAME" -backend-config="resource_group_name=$RESOURCE_GROUP"
-      working-directory: ${{ TERRAFORM_SCRIPTS_PATH }}
+      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
 
     - name: Terraform Validate
       id: validate
       run: terraform validate -no-color
-      working-directory: ${{ TERRAFORM_SCRIPTS_PATH }}
+      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
 
     - name: Terraform Plan
       id: plan
       run: terraform plan -no-color --var-file=config.tfvars --out=deploy_plan.tfplan
       continue-on-error: false
-      working-directory: ${{ TERRAFORM_SCRIPTS_PATH }}
+      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
 
     - name: Compress TF Plan artifact
       shell: bash
       run: zip -r "${{ github.run_number }}.zip" ./*
-      working-directory: ${{ TERRAFORM_SCRIPTS_PATH }}
+      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v3
       with:
         name: "${{ github.run_number }}"
     #    path: "./Folder/deploy/${{ env.build_name }}-${{ github.run_number }}.zip"
-        path: "${{ TERRAFORM_SCRIPTS_PATH }}/${{ github.run_number }}.zip"
+        path: "${{ env.TERRAFORM_SCRIPTS_PATH }}/${{ github.run_number }}.zip"
         retention-days: 5
 
     - name: Creating issue
