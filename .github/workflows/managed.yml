@@ -12,7 +12,7 @@ on:
 
 jobs:
   configuration_01:
-    name: Use Configuration 01
+    name: Configuration 01
     uses: origin-technologies/Terraform/.github/workflows/managed_identity_workflow.yml@main
     with:
       environment: Production
