@@ -34,9 +34,9 @@ resource "azurerm_app_service" "sst_app_service" {
   }
   tags = local.common_tags
 } 
-# resource "azurerm_communication_service" "sst_communication_service" {
-#   name                = "acs-${var.name}-${var.environment}-001"
-#   resource_group_name = azurerm_resource_group.sst_resource_group.name
-#   data_location       = "Europe" // [Asia Pacific Australia Europe UK United States]
-#   tags = local.common_tags
-# }
+resource "azurerm_communication_service" "sst_communication_service" {
+  name                = "acs-${var.name}-${var.environment}-001"
+  resource_group_name = azurerm_resource_group.sst_resource_group.name
+  data_location       = "Europe" // [Asia Pacific Australia Europe UK United States]
+  tags = local.common_tags
+}
