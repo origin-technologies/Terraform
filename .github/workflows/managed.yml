@@ -15,12 +15,17 @@ env:
   STORAGE_ACCOUNT: "sampletraininguk"
   CONTAINER_NAME: "container1"  
 
-defaults:
-  run:
-    working-directory: "./Folder/"
+# defaults:
+#   run:
+#     working-directory: "./Folder/"
 
 jobs:
   plan:
+    env:
+      TERRAFORM_SCRIPTS_PATH: "./Folder/"  
+    defaults:
+      run:
+        working-directory: $TERRAFORM_SCRIPTS_PATH
     name: 'Plan' 
     runs-on: self-hosted
     steps:
@@ -54,7 +59,7 @@ jobs:
       with:
         name: "${{ github.run_number }}"
     #    path: "./Folder/deploy/${{ env.build_name }}-${{ github.run_number }}.zip"
-        path: "./${{ github.run_number }}.zip"
+        path: "${{ TERRAFORM_SCRIPTS_PATH }}/${{ github.run_number }}.zip"
         retention-days: 5
 
     - name: Creating issue
