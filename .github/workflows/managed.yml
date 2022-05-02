@@ -54,7 +54,7 @@ jobs:
       with:
         name: "${{ github.run_number }}"
     #    path: "./Folder/deploy/${{ env.build_name }}-${{ github.run_number }}.zip"
-        path: "/${{ github.run_number }}.zip"
+        path: "./${{ github.run_number }}.zip"
         retention-days: 5
 
     - name: Creating issue
@@ -76,7 +76,7 @@ jobs:
     needs: [plan]
     runs-on: self-hosted
     environment: 'Production'
-    if: ${{ github.event_name == 'pull_request' }}
+    #if: ${{ github.event_name == 'pull_request' }}
     steps:
     - uses: actions/checkout@v2
 
