@@ -6,13 +6,6 @@ on:
         type: string
         description: Environment to deploy to
         required: true
-    secrets:
-      ARM_SUBSCRIPTION_ID:
-        description: 'Azure subscription ID'
-        required: true
-      ARM_TENANT_ID:
-        description: 'Azure tenant ID'
-        required: true
       STORAGE_RESOURCE_GROUP:
         description: 'Resource group with the storage account that will be used as Terraform backend'
         required: true
@@ -22,6 +15,13 @@ on:
       STORAGE_CONTAINER_NAME:
         description: 'Container that will store the Terraform state file'
         required: true 
+    secrets:
+      ARM_SUBSCRIPTION_ID:
+        description: 'Azure subscription ID'
+        required: true
+      ARM_TENANT_ID:
+        description: 'Azure tenant ID'
+        required: true
 
 env:  
   ARM_USE_MSI: true 
