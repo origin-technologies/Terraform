@@ -29,7 +29,7 @@ jobs:
     - name: Terraform fmt
       id: fmt
       run: terraform fmt -check
-      continue-on-error: false
+      continue-on-error: true
 
     - name: Terraform Init
       id: init
@@ -42,7 +42,7 @@ jobs:
     - name: Terraform Plan
       id: plan
       run: terraform plan -no-color --var-file=config.tfvars --out=deploy_plan.tfplan
-      continue-on-error: false
+      continue-on-error: true
 
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v3
