@@ -20,11 +20,13 @@ env:
 #     working-directory: "./Folder/"
 
 jobs:
-  plan:
-    env:
-      TERRAFORM_SCRIPTS_PATH: "./Folder/"  
+  plan:       
     name: 'Plan' 
     runs-on: self-hosted
+
+    env:
+      TERRAFORM_SCRIPTS_PATH: ./Folder/ 
+
     steps:
     - uses: actions/checkout@v2
     - uses: hashicorp/setup-terraform@v2
