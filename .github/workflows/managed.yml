@@ -85,6 +85,8 @@ jobs:
     needs: [plan]
     runs-on: self-hosted
     environment: 'Production'
+    env:
+      STAGING_PATH: ./Folder
     #if: ${{ github.event_name == 'pull_request' }}
     steps:
     - uses: actions/checkout@v2
@@ -92,13 +94,13 @@ jobs:
     - name: Download Artifact
       uses: actions/download-artifact@v3
       with:
-        name: "deploy"
-        path: deploy/staging
+        name: ${{ github.run_number }}
+        path: ${{ env.STAGING_PATH }}
 
     - name: Decompress TF Plan artifact
       shell: bash
       run: unzip ${{ env.build_name }}-${{ github.run_number }}.zip
-      working-directory: deploy/staging
+      working-directory: ${{ env.STAGING_PATH }}
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2.0.0
@@ -106,9 +108,9 @@ jobs:
     - name: Terraform Init
       id: init
       run: terraform init -backend-config="storage_account_name=$STORAGE_ACCOUNT" -backend-config="container_name=$CONTAINER_NAME" -backend-config="resource_group_name=$RESOURCE_GROUP"
-      working-directory: deploy/staging
+      working-directory: ${{ env.STAGING_PATH }}
 
     - name: Terraform Apply Deploy
       shell: bash
       run: terraform apply deploy_plan.tfplan
-      working-directory: deploy/staging
+      working-directory: ${{ env.STAGING_PATH }}
