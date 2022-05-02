@@ -47,7 +47,7 @@ jobs:
 
     - name: Compress TF Plan artifact
       shell: bash
-      run: zip -r deploy/${{ env.build_name }}-${{ github.run_number }}.zip ./*
+      run: zip -r ${{ env.build_name }}-${{ github.run_number }}.zip ./*
       # working-directory: ./Folder/
 
     - name: Upload Artifact
@@ -55,7 +55,7 @@ jobs:
       with:
         name: "${{ env.build_name }}-${{ github.run_number }}"
     #    path: "./Folder/deploy/${{ env.build_name }}-${{ github.run_number }}.zip"
-        path: "/deploy/${{ env.build_name }}-${{ github.run_number }}.zip"
+        path: "${{ env.build_name }}-${{ github.run_number }}.zip"
         retention-days: 5
 
     - name: Creating issue
