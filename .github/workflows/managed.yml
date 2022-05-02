@@ -13,10 +13,9 @@ on:
 jobs:
   configuration_01:
     name: Configuration 01
-    environment: 'Production'
     uses: origin-technologies/Terraform/.github/workflows/managed_identity_workflow.yml@main
-    # with:
-    #   environment: Production
+    with:
+      environment: Production
     secrets:
       ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
       ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}    

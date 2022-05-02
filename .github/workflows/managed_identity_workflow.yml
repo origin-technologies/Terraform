@@ -1,6 +1,11 @@
 name: Provision infrastructure using Terraform
 on:
   workflow_call:
+    inputs:
+      environment:
+        type: string
+        description: Environment to deploy to
+        required: true
     secrets:
       ARM_SUBSCRIPTION_ID:
         description: 'Azure subscription ID'
