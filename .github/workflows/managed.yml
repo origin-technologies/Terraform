@@ -99,7 +99,7 @@ jobs:
 
     - name: Decompress TF Plan artifact
       shell: bash
-      run: unzip ${{ env.build_name }}-${{ github.run_number }}.zip
+      run: unzip ${{ github.run_number }}.zip
       working-directory: ${{ env.STAGING_PATH }}
 
     - name: Setup Terraform
