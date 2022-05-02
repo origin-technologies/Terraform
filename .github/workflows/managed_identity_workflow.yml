@@ -25,7 +25,6 @@ jobs:
   plan:       
     name: 'Plan' 
     runs-on: self-hosted
-    environment: 'Production'
     env:
       TERRAFORM_SCRIPTS_PATH: ./Folder
 
@@ -84,8 +83,7 @@ jobs:
     name: 'Apply'
     needs: [ plan ]
     runs-on: self-hosted
-    environment: 'Production'
-    if: ${{ github.event_name == 'push' }}
+    #if: ${{ github.event_name == 'push' }}
 
     env:
       STAGING_PATH: ./staging
