@@ -42,17 +42,17 @@ jobs:
     - name: Terraform Plan
       id: plan
       run: terraform plan -no-color --var-file=config.tfvars --out=deploy_plan.tfplan
-      continue-on-error: true
+      continue-on-error: false
 
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v3
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        commit-message: Add report file
-        title: '[Example] Add report file'
-        body: steps.deploy_plan.outputs.stdout
-        labels: report, automated pr    
-  
+        commit-message: Update infrastructure
+        title: 'Terraform plan'
+        body: ${{ steps.deploy_plan.outputs.stdout }}
+        labels: terraform, automated pr    
+
     # - name: PR Plan Deploy
     #   if: ${{ github.event_name == 'pull_request' }}
     #   uses: robburger/terraform-pr-commenter@v1
