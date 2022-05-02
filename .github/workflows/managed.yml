@@ -1,4 +1,4 @@
-name: 'ManagedIdentity'
+name: 'Terraform'
 
 on:
   workflow_dispatch:
@@ -7,125 +7,18 @@ on:
   pull_request:
     branches: [ main ]
 
-env:
-  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}      
-  ARM_USE_MSI: true
-  RESOURCE_GROUP: "rg-training-dev"
-  STORAGE_ACCOUNT: "sampletraininguk"
-  CONTAINER_NAME: "container1"  
-
-# defaults:
-#   run:
-#     working-directory: "./Folder/"
+# env:  
+#   ARM_USE_MSI: true
 
 jobs:
-  plan:       
-    name: 'Plan' 
-    runs-on: self-hosted
-
-    env:
-      TERRAFORM_SCRIPTS_PATH: ./Folder
-
-    steps:
-    - uses: actions/checkout@v2
-    - uses: hashicorp/setup-terraform@v2
-
-    - name: Terraform fmt
-      id: fmt
-      run: terraform fmt -check
-      continue-on-error: true
-      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
-
-    - name: Terraform Init
-      id: init
-      run: terraform init -backend-config="storage_account_name=$STORAGE_ACCOUNT" -backend-config="container_name=$CONTAINER_NAME" -backend-config="resource_group_name=$RESOURCE_GROUP"
-      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
-
-    - name: Terraform Validate
-      id: validate
-      run: terraform validate -no-color
-      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
-
-    - name: Terraform Plan
-      id: plan
-      run: terraform plan -no-color --var-file=config.tfvars --out=deploy_plan.tfplan
-      continue-on-error: false
-      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
-
-    - name: Compress TF Plan artifact
-      shell: bash
-      run: zip -r "${{ github.run_number }}.zip" ./*
-      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
-
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: "${{ github.run_number }}"
-        path: "${{ env.TERRAFORM_SCRIPTS_PATH }}/${{ github.run_number }}.zip"
-        retention-days: 5
-
-    - name: Creating issue
-      uses: actions/github-script@0.9.0
-      if: failure()
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-           let body = "Worflow Failure \n Build Number: ${{ github.run_number }} \n Build Log: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} \n SHA: [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }}) \n";
-           github.issues.create({
-             owner: context.repo.owner,
-             repo: context.repo.repo,
-             title: "Workflow ${{ github.run_number }} Failed! ",
-             body: body
-           });
-
-  apply:
-    name: 'Apply'
-    needs: [plan]
-    runs-on: self-hosted
-    environment: 'Production'
-    # if: ${{ github.event_name == 'pull_request' }}
-
-    env:
-      STAGING_PATH: ./staging
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Download Artifact
-      uses: actions/download-artifact@v3
-      with:
-        name: ${{ github.run_number }}
-        path: ${{ env.STAGING_PATH }}
-
-    - name: Decompress TF Plan artifact
-      shell: bash
-      run: unzip ${{ github.run_number }}.zip
-      working-directory: ${{ env.STAGING_PATH }}
-
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2.0.0
-
-    - name: Terraform Init
-      id: init
-      run: terraform init -backend-config="storage_account_name=$STORAGE_ACCOUNT" -backend-config="container_name=$CONTAINER_NAME" -backend-config="resource_group_name=$RESOURCE_GROUP"
-      working-directory: ${{ env.STAGING_PATH }}
-
-    - name: Terraform Apply Deploy
-      shell: bash
-      run: terraform apply deploy_plan.tfplan
-      working-directory: ${{ env.STAGING_PATH }}
-
-    - name: Creating issue
-      uses: actions/github-script@0.9.0
-      if: failure()
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-           let body = "Worflow Failure \n Build Number: ${{ github.run_number }} \n Build Log: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} \n SHA: [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }}) \n";
-           github.issues.create({
-             owner: context.repo.owner,
-             repo: context.repo.repo,
-             title: "Workflow ${{ github.run_number }} Failed! ",
-             body: body
-           });
+  configuration_01:
+    name: Use Configuration 01
+    uses: origin-technologies/Terraform/.github/workflows/managed_identity_workflow.yml@main
+    with:
+      environment: Production
+    secrets:
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}    
+      STORAGE_RESOURCE_GROUP: ${{ secrets.STORAGE_RESOURCE_GROUP }}
+      STORAGE_ACCOUNT: ${{ secrets.STORAGE_ACCOUNT }}
+      STORAGE_CONTAINER_NAME: ${{ secrets.STORAGE_CONTAINER_NAME }}
