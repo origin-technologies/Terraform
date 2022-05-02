@@ -1,4 +1,5 @@
 # Terraform
+Multiple .tfvars files in a folder for each environment. Hence, we need to understand the exact steps to deploy in the new pipeline using one .tfvars file at a time.
 
 # Permissions
 The minimum permission is **contributor** to the **subscription** level.
