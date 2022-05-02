@@ -47,15 +47,15 @@ jobs:
 
     - name: Compress TF Plan artifact
       shell: bash
-      run: zip -r ${{ env.build_name }}-${{ github.run_number }}.zip ./*
+      run: zip -r "${{ github.action }}-${{ github.run_number }}.zip" ./*
       # working-directory: ./Folder/
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v3
       with:
-        name: "${{ env.build_name }}-${{ github.run_number }}"
+        name: "${{ github.action }}-${{ github.run_number }}"
     #    path: "./Folder/deploy/${{ env.build_name }}-${{ github.run_number }}.zip"
-        path: "${{ env.build_name }}-${{ github.run_number }}.zip"
+        path: "${{ github.action }}-${{ github.run_number }}.zip"
         retention-days: 5
 
     - name: Creating issue
@@ -64,11 +64,11 @@ jobs:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-           let body = "${{ env.build_name }} Worflow Failure \n Build Number: ${{ github.run_number }} \n Build Log: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} \n SHA: [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }}) \n";
+           let body = "${{ github.action }} Worflow Failure \n Build Number: ${{ github.run_number }} \n Build Log: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} \n SHA: [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }}) \n";
            github.issues.create({
              owner: context.repo.owner,
              repo: context.repo.repo,
-             title: "${{ env.build_name }} Workflow ${{ github.run_number }} Failed! ",
+             title: "${{ github.action }} Workflow ${{ github.run_number }} Failed! ",
              body: body
            });
 
