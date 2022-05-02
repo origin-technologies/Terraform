@@ -98,7 +98,7 @@ jobs:
 
     - name: Decompress TF Plan artifact
       shell: bash
-      run: unzip ${{ github.run_number }}.zip -d ${{ env.STAGING_PATH }}/${{ github.run_number }}
+      run: unzip ${{ github.run_number }}.zip -d ${{ github.run_number }}
       working-directory: ${{ env.STAGING_PATH }}
 
     - name: Setup Terraform
@@ -113,3 +113,17 @@ jobs:
       shell: bash
       run: terraform apply deploy_plan.tfplan
       working-directory: ${{ env.STAGING_PATH }}
+
+    - name: Creating issue
+      uses: actions/github-script@0.9.0
+      if: failure()
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+           let body = "Worflow Failure \n Build Number: ${{ github.run_number }} \n Build Log: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} \n SHA: [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }}) \n";
+           github.issues.create({
+             owner: context.repo.owner,
+             repo: context.repo.repo,
+             title: "Workflow ${{ github.run_number }} Failed! ",
+             body: body
+           });
