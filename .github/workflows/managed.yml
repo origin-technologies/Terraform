@@ -87,7 +87,6 @@ jobs:
     # if: ${{ github.event_name == 'pull_request' }}
 
     env:
-      STAGING_FOLDER_NAME: staging
       STAGING_PATH: ./staging
 
     steps:
@@ -101,7 +100,7 @@ jobs:
 
     - name: Decompress TF Plan artifact
       shell: bash
-      run: unzip ${{ github.run_number }}.zip -d /${{ env.STAGING_FOLDER_NAME }}/${{ github.run_number }}
+      run: unzip ${{ github.run_number }}.zip
       working-directory: ${{ env.STAGING_PATH }}
 
     - name: Setup Terraform
