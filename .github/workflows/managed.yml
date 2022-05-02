@@ -99,8 +99,8 @@ jobs:
 
     - name: Decompress TF Plan artifact
       shell: bash
-      run: unzip ${{ github.run_number }}.zip
-      working-directory: ${{ env.STAGING_PATH }}/${{ github.run_number }}
+      run: unzip ${{ github.run_number }}.zip -d ${{ env.STAGING_PATH }}/${{ github.run_number }}
+      # working-directory: ${{ env.STAGING_PATH }}/${{ github.run_number }}
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2.0.0
