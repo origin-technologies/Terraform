@@ -62,7 +62,6 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: "${{ github.run_number }}"
-    #    path: "./Folder/deploy/${{ env.build_name }}-${{ github.run_number }}.zip"
         path: "${{ env.TERRAFORM_SCRIPTS_PATH }}/${{ github.run_number }}.zip"
         retention-days: 5
 
@@ -100,7 +99,7 @@ jobs:
     - name: Decompress TF Plan artifact
       shell: bash
       run: unzip ${{ github.run_number }}.zip -d ${{ env.STAGING_PATH }}/${{ github.run_number }}
-      # working-directory: ${{ env.STAGING_PATH }}/${{ github.run_number }}
+      working-directory: ${{ env.STAGING_PATH }}
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2.0.0
