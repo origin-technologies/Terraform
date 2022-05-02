@@ -1,21 +1,24 @@
 name: 'ManagedIdentity'
+
 on:
   workflow_dispatch:
+
+env:
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}      
+  ARM_USE_MSI: true
+  RESOURCE_GROUP: "rg-training-dev"
+  STORAGE_ACCOUNT: "sampletraininguk"
+  CONTAINER_NAME: "container1"  
+
+defaults:
+  run:
+    working-directory: "./Folder/"
+
 jobs:
   plan:
-    name: 'Plan'
-    env:
-      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}      
-      ARM_USE_MSI: true
-      RESOURCE_GROUP: "rg-training-dev"
-      STORAGE_ACCOUNT: "sampletraininguk"
-      CONTAINER_NAME: "container1"
-      
+    name: 'Plan' 
     runs-on: self-hosted
-    defaults:
-      run:
-        working-directory: "./Folder/"
     steps:
     - uses: actions/checkout@v2
     - uses: hashicorp/setup-terraform@v2
@@ -23,7 +26,7 @@ jobs:
     - name: Terraform fmt
       id: fmt
       run: terraform fmt -check
-      continue-on-error: true
+      continue-on-error: false
 
     - name: Terraform Init
       id: init
@@ -36,35 +39,54 @@ jobs:
     - name: Terraform Plan
       id: plan
       run: terraform plan -no-color --var-file=config.tfvars --out=deploy_plan.tfplan
-      continue-on-error: true
-        
+      continue-on-error: false
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: Add report file
+        title: '[Example] Add report file'
+        body: steps.deploy_plan.outputs.stdout
+        labels: report, automated pr    
+  
+    - name: PR Plan Deploy
+      if: ${{ github.event_name == 'pull_request' }}
+      uses: robburger/terraform-pr-commenter@v1
+      with:
+        commenter_type: plan
+        commenter_input: ${{ format('{0}{1}', steps.deploy_plan.outputs.stdout, steps.deploy_plan.outputs.stderr) }}
+        commenter_exitcode: ${{ steps.deploy_plan.outputs.exitcode }}
+
     - name: Compress TF Plan artifact
       shell: bash
       run: zip -r deploy.zip ./*
-      working-directory: ./Folder/
+      # working-directory: ./Folder/
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v3
       with:
-        name: "deploy"
-        path: "./Folder/deploy.zip"
+        name: "${{ env.build_name }}-${{ github.run_number }}"
+        path: "./Folder/${{ env.build_name }}-${{ github.run_number }}.zip"
         retention-days: 5
+
+    - uses: actions/github-script@0.9.0
+      if: failure()
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+           let body = "${{ env.build_name }} Worflow Failure \n Build Number: ${{ github.run_number }} \n Build Log: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} \n SHA: [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }}) \n";
+           github.issues.create({
+             owner: context.repo.owner,
+             repo: context.repo.repo,
+             title: "${{ env.build_name }} Workflow ${{ github.run_number }} Failed! ",
+             body: body
+           });
 
   apply:
     needs: plan
     name: 'Apply'
-    env:
-      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}      
-      ARM_USE_MSI: true
-      RESOURCE_GROUP: "rg-training-dev"
-      STORAGE_ACCOUNT: "sampletraininguk"
-      CONTAINER_NAME: "container1"
-
     runs-on: self-hosted
-    defaults:
-      run:
-        working-directory: "./Folder/"
     steps:
     - uses: actions/checkout@v2
 
@@ -76,7 +98,7 @@ jobs:
 
     - name: Decompress TF Plan artifact
       shell: bash
-      run: unzip deploy.zip
+      run: unzip ${{ env.build_name }}-${{ github.run_number }}.zip
       working-directory: deploy/staging
 
     - name: Setup Terraform
