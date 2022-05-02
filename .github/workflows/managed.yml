@@ -86,7 +86,7 @@ jobs:
     runs-on: self-hosted
     environment: 'Production'
     env:
-      STAGING_PATH: ./Folder
+      STAGING_PATH: ./staging
     #if: ${{ github.event_name == 'pull_request' }}
     steps:
     - uses: actions/checkout@v2
@@ -100,7 +100,7 @@ jobs:
     - name: Decompress TF Plan artifact
       shell: bash
       run: unzip ${{ github.run_number }}.zip
-      working-directory: ${{ env.STAGING_PATH }}
+      working-directory: ${{ env.STAGING_PATH }}/${{ github.run_number }}
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2.0.0
