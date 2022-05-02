@@ -25,7 +25,7 @@ jobs:
     runs-on: self-hosted
 
     env:
-      TERRAFORM_SCRIPTS_PATH: ./Folder/ 
+      TERRAFORM_SCRIPTS_PATH: ./Folder
 
     steps:
     - uses: actions/checkout@v2
