@@ -42,6 +42,7 @@ resource "azurerm_app_service" "sst_app_service" {
 # }
 
 
+
 resource "azurerm_network_security_group" "sst_network" {
   name                = "nsg-${var.name}-${var.environment}-001"
   location            = azurerm_resource_group.sst_resource_group.location
