@@ -1,4 +1,5 @@
 name: Provision infrastructure using Terraform
+
 on:
   workflow_call:
     inputs:
@@ -36,20 +37,17 @@ jobs:
     name: 'Plan' 
     runs-on: self-hosted
     environment: ${{ inputs.environment }}
-    if: ${{ github.event_name == 'pull_request' }}
+    if: ${{ github.actor != 'dependabot[bot]' && github.event_name == 'pull_request' }}
     env:
       TERRAFORM_SCRIPTS_PATH: ./Folder
-
     steps:
     - uses: actions/checkout@v2
     - uses: hashicorp/setup-terraform@v2
-
     - name: Terraform fmt
       id: fmt
       run: terraform fmt -check
       continue-on-error: true
       working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
-
     - name: Terraform Init
       id: init
       run: | 
@@ -59,25 +57,21 @@ jobs:
         STORAGE_CONTAINER_NAME: ${{ secrets.STORAGE_CONTAINER_NAME }}
         STORAGE_RESOURCE_GROUP: ${{ secrets.STORAGE_RESOURCE_GROUP }}
       working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
-
     - name: Terraform Validate
       id: validate
       run: terraform validate -no-color
       working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
-
     - name: Terraform Plan
       id: plan
       run: terraform plan -no-color --var-file=$TERRAFORM_CONFIG_PATH --out=deploy_plan.tfplan
       env:
         TERRAFORM_CONFIG_PATH: ${{ secrets.TERRAFORM_CONFIG_PATH }}
       working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
-
     - name: Compress TF Plan artifact
       # if: ${{ github.event_name == 'push' }}
       shell: bash
       run: zip -r "${{ github.run_number }}.zip" ./*
       working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
-
     - name: Upload Artifact
       # if: ${{ github.event_name == 'push' }}
       uses: actions/upload-artifact@v3
@@ -85,7 +79,6 @@ jobs:
         name: "${{ github.run_number }}"
         path: "${{ env.TERRAFORM_SCRIPTS_PATH }}/${{ github.run_number }}.zip"
         retention-days: 5
-
     - name: Creating issue
       uses: actions/github-script@0.9.0
       if: failure()
@@ -105,28 +98,22 @@ jobs:
     # needs: [ plan ]
     runs-on: self-hosted
     environment: ${{ inputs.environment }}
-    if: ${{ github.event_name == 'push' }}
-
+    if: ${{ github.actor != 'dependabot[bot]' && github.event_name == 'push' }}
     env:
       STAGING_PATH: ./staging
-
     steps:
     - uses: actions/checkout@v2
-
     - name: Download Artifact
       uses: actions/download-artifact@v3
       with:
         name: ${{ github.run_number }}
         path: ${{ env.STAGING_PATH }}
-
     - name: Decompress TF Plan artifact
       shell: bash
       run: unzip ${{ github.run_number }}.zip
       working-directory: ${{ env.STAGING_PATH }}
-
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2.0.0
-
     - name: Terraform Init
       id: init
       run: | 
@@ -136,12 +123,10 @@ jobs:
         STORAGE_CONTAINER_NAME: ${{ secrets.STORAGE_CONTAINER_NAME }}
         STORAGE_RESOURCE_GROUP: ${{ secrets.STORAGE_RESOURCE_GROUP }}
       working-directory: ${{ env.STAGING_PATH }}
-
     - name: Terraform Apply Deploy
       shell: bash
       run: terraform apply deploy_plan.tfplan
       working-directory: ${{ env.STAGING_PATH }}
-
     - name: Creating issue
       uses: actions/github-script@0.9.0
       if: failure()
