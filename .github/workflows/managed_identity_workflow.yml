@@ -73,13 +73,13 @@ jobs:
       working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
 
     - name: Compress TF Plan artifact
-      #if: ${{ github.event_name == 'push' }}
+      # if: ${{ github.event_name == 'push' }}
       shell: bash
       run: zip -r "${{ github.run_number }}.zip" ./*
       working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
 
     - name: Upload Artifact
-      #if: ${{ github.event_name == 'push' }}
+      # if: ${{ github.event_name == 'push' }}
       uses: actions/upload-artifact@v3
       with:
         name: "${{ github.run_number }}"
@@ -102,7 +102,7 @@ jobs:
 
   apply:
     name: 'Apply'
-    needs: [ plan ]
+    # needs: [ plan ]
     runs-on: self-hosted
     environment: ${{ inputs.environment }}
     if: ${{ github.event_name == 'push' }}
