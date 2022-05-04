@@ -27,4 +27,3 @@ https://www.terraform.io/cli/install/apt?msclkid=c2a0ff64c7c911ec940711c6969be54
 ```
 sudo apt install zip
 ```
-
