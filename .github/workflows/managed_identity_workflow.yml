@@ -243,4 +243,6 @@ jobs:
       if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
       shell: bash
       run: terraform apply --var-file=$TERRAFORM_CONFIG_PATH -auto-approve
+      env:
+        TERRAFORM_CONFIG_PATH: ${{ secrets.TERRAFORM_CONFIG_PATH }}
       working-directory: ${{ env.STAGING_PATH }}
