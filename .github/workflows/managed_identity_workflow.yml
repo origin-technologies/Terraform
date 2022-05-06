@@ -261,7 +261,7 @@ jobs:
     name: 'Apply' 
     runs-on: self-hosted
     environment: ${{ inputs.environment }}
-    if: ${{ if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
+    if: =${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
     env:
       TERRAFORM_SCRIPTS_PATH: ./Folder
     steps:
