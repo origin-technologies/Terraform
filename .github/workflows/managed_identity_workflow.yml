@@ -173,8 +173,8 @@ env:
   ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
   ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}   
 jobs:
-  Terraform:       
-    name: 'Terraform' 
+  plan:       
+    name: 'Plan' 
     runs-on: self-hosted
     environment: ${{ inputs.environment }}
     if: ${{ github.actor != 'dependabot[bot]' }}
@@ -239,8 +239,54 @@ jobs:
     - name: Terraform Plan Status
       if: steps.plan.outcome == 'failure'
       run: exit 1
+    
     - name: Terraform Apply Deploy
       if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
+      shell: bash
+      run: terraform apply deploy_plan.tfplan
+      working-directory: ${{ env.STAGING_PATH }}
+
+    - name: Compress TF Plan artifact
+      shell: bash
+      run: zip -r "${{ github.run_number }}.zip" ./*
+      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: "${{ github.run_number }}"
+        path: "${{ env.TERRAFORM_SCRIPTS_PATH }}/${{ github.run_number }}.zip"
+        retention-days: 5
+
+  apply:       
+    name: 'Apply' 
+    runs-on: self-hosted
+    environment: ${{ inputs.environment }}
+    if: ${{ if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
+    env:
+      TERRAFORM_SCRIPTS_PATH: ./Folder
+    steps:
+    - uses: actions/checkout@v2
+    - name: Download Artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: ${{ github.run_number }}
+        path: ${{ env.STAGING_PATH }}
+    - name: Decompress TF Plan artifact
+      shell: bash
+      run: unzip ${{ github.run_number }}.zip
+      working-directory: ${{ env.STAGING_PATH }}
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2.0.0
+    - name: Terraform Init
+      id: init
+      run: | 
+        terraform init -backend-config="storage_account_name=$STORAGE_ACCOUNT" -backend-config="container_name=$STORAGE_CONTAINER_NAME" -backend-config="resource_group_name=$STORAGE_RESOURCE_GROUP"
+      env:
+        STORAGE_ACCOUNT: ${{ secrets.STORAGE_ACCOUNT }}
+        STORAGE_CONTAINER_NAME: ${{ secrets.STORAGE_CONTAINER_NAME }}
+        STORAGE_RESOURCE_GROUP: ${{ secrets.STORAGE_RESOURCE_GROUP }}
+      working-directory: ${{ env.STAGING_PATH }}
+    - name: Terraform Apply Deploy
       shell: bash
       run: terraform apply deploy_plan.tfplan
       working-directory: ${{ env.STAGING_PATH }}
