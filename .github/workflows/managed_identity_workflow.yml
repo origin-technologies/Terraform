@@ -177,7 +177,7 @@ jobs:
     name: 'Terraform' 
     runs-on: self-hosted
     environment: ${{ inputs.environment }}
-    if: ${{ github.actor != 'dependabot[bot]' && github.event_name == 'pull_request' }}
+    if: ${{ github.actor != 'dependabot[bot]' }}
     env:
       TERRAFORM_SCRIPTS_PATH: ./Folder
     steps:
@@ -218,15 +218,18 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
           const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
-          #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
-          #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
-          #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+          #### Terraform Initialization \`${{ steps.init.outcome }}\`
+          #### Terraform Plan \`${{ steps.plan.outcome }}\`
+          #### Terraform Validation \`${{ steps.validate.outcome }}\`
+          
           <details><summary>Show Plan</summary>
           \`\`\`\n
           ${process.env.PLAN}
           \`\`\`
           </details>
+
           *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+          
           github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
