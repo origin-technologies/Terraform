@@ -253,7 +253,7 @@ jobs:
     - name: Upload Artifact
       uses: actions/upload-artifact@v3
       with:
-        name: "${{ github.run_number }}"
+        name: deployment-plan
         path: "${{ env.TERRAFORM_SCRIPTS_PATH }}/${{ github.run_number }}.zip"
         retention-days: 5
 
@@ -269,7 +269,7 @@ jobs:
     - name: Download Artifact
       uses: actions/download-artifact@v3
       with:
-        name: ${{ github.run_number }}
+        name: deployment-plan
         path: ${{ env.STAGING_PATH }}
     - name: Decompress TF Plan artifact
       shell: bash
