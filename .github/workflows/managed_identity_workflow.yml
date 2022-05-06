@@ -173,10 +173,11 @@ env:
   ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
   ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}   
 jobs:
-  validate:
-    name: 'Validate' 
+  Terraform:       
+    name: 'Terraform' 
     runs-on: self-hosted
     environment: ${{ inputs.environment }}
+    if: ${{ github.actor != 'dependabot[bot]' && github.event_name == 'pull_request' }}
     env:
       TERRAFORM_SCRIPTS_PATH: ./Folder
     steps:
@@ -196,36 +197,18 @@ jobs:
         STORAGE_CONTAINER_NAME: ${{ secrets.STORAGE_CONTAINER_NAME }}
         STORAGE_RESOURCE_GROUP: ${{ secrets.STORAGE_RESOURCE_GROUP }}
       working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
-    - name: Terraform Validate
-      id: validate
-      run: terraform validate -no-color
-      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
-  plan:       
-    name: 'Plan' 
-    runs-on: self-hosted
-    environment: ${{ inputs.environment }}
-    if: ${{ github.actor != 'dependabot[bot]' && github.event_name == 'pull_request' }}
-    env:
-      TERRAFORM_SCRIPTS_PATH: ./Folder
-    steps:
-    - uses: actions/checkout@v2
-    - uses: hashicorp/setup-terraform@v2
-    - name: Terraform Init
-      id: init
-      run: | 
-        terraform init -backend-config="storage_account_name=$STORAGE_ACCOUNT" -backend-config="container_name=$STORAGE_CONTAINER_NAME" -backend-config="resource_group_name=$STORAGE_RESOURCE_GROUP"
-      env:
-        STORAGE_ACCOUNT: ${{ secrets.STORAGE_ACCOUNT }}
-        STORAGE_CONTAINER_NAME: ${{ secrets.STORAGE_CONTAINER_NAME }}
-        STORAGE_RESOURCE_GROUP: ${{ secrets.STORAGE_RESOURCE_GROUP }}
-      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
     - name: Terraform Plan
       id: plan
+      if: ${{ github.event_name == 'pull_request' }}
       run: terraform plan -no-color --var-file=$TERRAFORM_CONFIG_PATH --out=deploy_plan.tfplan
       env:
         TERRAFORM_CONFIG_PATH: ${{ secrets.TERRAFORM_CONFIG_PATH }}
       working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
       continue-on-error: true
+    - name: Terraform Validate
+      id: validate
+      run: terraform validate -no-color
+      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
     - name: Update Pull Request
       uses: actions/github-script@6
       if: ${{ github.event_name == 'pull_request' }}
