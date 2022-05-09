@@ -20,7 +20,7 @@ The minimum permission is **contributor** to the **subscription** level.
 
 - Install terraform on the runner
 
-https://www.terraform.io/cli/install/apt?msclkid=c2a0ff64c7c911ec940711c6969be54c
+https://www.terraform.io/cli/install/apt?msclkid=c2a0ff64c7c911ec940711c6969be54c 
 
 - Install zip
 
