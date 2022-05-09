@@ -174,7 +174,8 @@ jobs:
       continue-on-error: true
     - name: Copy plan
       id: copy
-      run: cp deploy_plan.tfplan ${{ env.STAGING_PATH }}  
+      run: cp deploy_plan.tfplan ${{ env.STAGING_PATH }} 
+      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }} 
     - name: Terraform Validate
       id: validate
       run: terraform validate -no-color
