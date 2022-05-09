@@ -10,8 +10,8 @@ env:
   ARM_USE_MSI: true 
 
 jobs:
-  configuration_00:
-    name: Configuration 01
+  production:
+    name: Production
     uses: origin-technologies/Terraform/.github/workflows/managed_identity_workflow.yml@main
     with:
       environment: Production
@@ -22,28 +22,3 @@ jobs:
       STORAGE_ACCOUNT: ${{ secrets.STORAGE_ACCOUNT }}
       STORAGE_CONTAINER_NAME: ${{ secrets.STORAGE_CONTAINER_NAME }}
       TERRAFORM_CONFIG_PATH: ${{ secrets.TERRAFORM_CONFIG_PATH }}
-
-  # configuration_01:
-  #   runs-on: self-hosted
-  #   if: ${{ github.actor != 'dependabot[bot]' }}
-  #   environment: null          
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
-  #     - name: Dev TF Plan Deploy
-  #       uses: Pwd9000-ML/terraform-azurerm-plan@v1.2.3
-  #       with:
-  #         path: ./Folder/               
-  #         plan_mode: deploy                    
-  #         tf_version: latest                   
-  #         tf_vars_file:  ${{ secrets.TERRAFORM_CONFIG_PATH }}      
-  #         tf_key: null               
-  #         enable_TFSEC: false                   
-  #         az_resource_group: ${{ secrets.STORAGE_RESOURCE_GROUP }}        
-  #         az_storage_acc: ${{ secrets.STORAGE_ACCOUNT }}     
-  #         az_container_name: ${{ secrets.STORAGE_CONTAINER_NAME }}  
-  #         arm_client_id: null              
-  #         arm_client_secret: null    
-  #         arm_subscription_id: ${{ secrets.ARM_SUBSCRIPTION_ID }} 
-  #         arm_tenant_id: ${{ secrets.ARM_TENANT_ID }}             
-  #         github_token: ${{ secrets.GITHUB_TOKEN }} 
