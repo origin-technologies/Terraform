@@ -58,7 +58,7 @@ jobs:
       id: plan
       if: ${{ github.event_name == 'pull_request' }}
       run: | 
-        mkdir ~/${{ github.run_id }}
+        mkdir ${{ github.run_id }}
         terraform plan -no-color --var-file=$TERRAFORM_CONFIG_PATH --out=${{ github.run_id }}/deploy_plan.tfplan
       env:
         TERRAFORM_CONFIG_PATH: ${{ secrets.TERRAFORM_CONFIG_PATH }}
