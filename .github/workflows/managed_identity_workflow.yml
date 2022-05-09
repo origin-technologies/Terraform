@@ -1,3 +1,113 @@
+
+name: Provision infrastructure using Terraform
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        description: Environment to deploy to
+        required: true
+    secrets:
+      ARM_SUBSCRIPTION_ID:
+        description: 'Azure subscription ID'
+        required: true
+      ARM_TENANT_ID:
+        description: 'Azure tenant ID'
+        required: true
+      STORAGE_RESOURCE_GROUP:
+        description: 'Resource group with the storage account that will be used as Terraform backend'
+        required: true
+      STORAGE_ACCOUNT:
+        description: 'Storage account that will store the Terraform state file'
+        required: true
+      STORAGE_CONTAINER_NAME:
+        description: 'Container that will store the Terraform state file'
+        required: true 
+      TERRAFORM_CONFIG_PATH:
+        description: 'Terraform configuration filename'
+        required: true 
+
+env:  
+  ARM_USE_MSI: true 
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}   
+
+jobs:
+  terraform:       
+    name: 'Terraform' 
+    runs-on: self-hosted
+    environment: ${{ inputs.environment }}
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    env:
+      TERRAFORM_SCRIPTS_PATH: ./Folder
+    steps:
+    - uses: actions/checkout@v2
+    - uses: hashicorp/setup-terraform@v2
+    - name: Terraform fmt
+      id: fmt
+      run: terraform fmt -check
+      continue-on-error: true
+      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
+    - name: Terraform Init
+      id: init
+      run: | 
+        terraform init -backend-config="storage_account_name=$STORAGE_ACCOUNT" -backend-config="container_name=$STORAGE_CONTAINER_NAME" -backend-config="resource_group_name=$STORAGE_RESOURCE_GROUP"
+      env:
+        STORAGE_ACCOUNT: ${{ secrets.STORAGE_ACCOUNT }}
+        STORAGE_CONTAINER_NAME: ${{ secrets.STORAGE_CONTAINER_NAME }}
+        STORAGE_RESOURCE_GROUP: ${{ secrets.STORAGE_RESOURCE_GROUP }}
+      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
+    - name: Terraform Plan
+      id: plan
+      if: ${{ github.event_name == 'pull_request' }}
+      run: terraform plan -no-color --var-file=${{ TERRAFORM_CONFIG_PATH }} --out=${{ github.run_id }}/deploy_plan.tfplan
+      env:
+        TERRAFORM_CONFIG_PATH: ${{ secrets.TERRAFORM_CONFIG_PATH }}
+      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
+      continue-on-error: true
+    - name: Terraform Validate
+      id: validate
+      run: terraform validate -no-color
+      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
+    - name: Update Pull Request
+      uses: actions/github-script@v6
+      if: ${{ github.event_name == 'pull_request' }}
+      env:
+        PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+          #### Terraform Initialization \`${{ steps.init.outcome }}\`
+          #### Terraform Plan \`${{ steps.plan.outcome }}\`
+          #### Terraform Validation \`${{ steps.validate.outcome }}\`
+          
+          <details><summary>Show Plan</summary>
+          \`\`\`\n
+          ${process.env.PLAN}
+          \`\`\`
+          </details>
+
+          *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: output
+          })
+    - name: Terraform Plan Status
+      if: steps.plan.outcome == 'failure'
+      run: exit 1
+    - name: Terraform Apply
+      if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
+      shell: bash
+      run: terraform apply --var-file=$TERRAFORM_CONFIG_PATH -auto-approve ${{ github.run_id }}/deploy_plan.tfplan
+      env:
+        TERRAFORM_CONFIG_PATH: ${{ secrets.TERRAFORM_CONFIG_PATH }}
+      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
+
 # name: Provision infrastructure using Terraform
 
 # on:
@@ -140,109 +250,3 @@
 #              title: "Workflow ${{ github.run_number }} Failed! ",
 #              body: body
 #            });
-
-name: Provision infrastructure using Terraform
-on:
-  workflow_call:
-    inputs:
-      environment:
-        type: string
-        description: Environment to deploy to
-        required: true
-    secrets:
-      ARM_SUBSCRIPTION_ID:
-        description: 'Azure subscription ID'
-        required: true
-      ARM_TENANT_ID:
-        description: 'Azure tenant ID'
-        required: true
-      STORAGE_RESOURCE_GROUP:
-        description: 'Resource group with the storage account that will be used as Terraform backend'
-        required: true
-      STORAGE_ACCOUNT:
-        description: 'Storage account that will store the Terraform state file'
-        required: true
-      STORAGE_CONTAINER_NAME:
-        description: 'Container that will store the Terraform state file'
-        required: true 
-      TERRAFORM_CONFIG_PATH:
-        description: 'Terraform configuration filename'
-        required: true 
-env:  
-  ARM_USE_MSI: true 
-  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}   
-jobs:
-  terraform:       
-    name: 'Terraform' 
-    runs-on: self-hosted
-    environment: ${{ inputs.environment }}
-    if: ${{ github.actor != 'dependabot[bot]' }}
-    env:
-      TERRAFORM_SCRIPTS_PATH: ./Folder
-    steps:
-    - uses: actions/checkout@v2
-    - uses: hashicorp/setup-terraform@v2
-    - name: Terraform fmt
-      id: fmt
-      run: terraform fmt -check
-      continue-on-error: true
-      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
-    - name: Terraform Init
-      id: init
-      run: | 
-        terraform init -backend-config="storage_account_name=$STORAGE_ACCOUNT" -backend-config="container_name=$STORAGE_CONTAINER_NAME" -backend-config="resource_group_name=$STORAGE_RESOURCE_GROUP"
-      env:
-        STORAGE_ACCOUNT: ${{ secrets.STORAGE_ACCOUNT }}
-        STORAGE_CONTAINER_NAME: ${{ secrets.STORAGE_CONTAINER_NAME }}
-        STORAGE_RESOURCE_GROUP: ${{ secrets.STORAGE_RESOURCE_GROUP }}
-      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
-    - name: Terraform Plan
-      id: plan
-      if: ${{ github.event_name == 'pull_request' }}
-      run: terraform plan -no-color --var-file=${{ TERRAFORM_CONFIG_PATH }} --out=${{ github.run_id }}/deploy_plan.tfplan
-      env:
-        TERRAFORM_CONFIG_PATH: ${{ secrets.TERRAFORM_CONFIG_PATH }}
-      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
-      continue-on-error: true
-    - name: Terraform Validate
-      id: validate
-      run: terraform validate -no-color
-      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
-    - name: Update Pull Request
-      uses: actions/github-script@v6
-      if: ${{ github.event_name == 'pull_request' }}
-      env:
-        PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
-          #### Terraform Initialization \`${{ steps.init.outcome }}\`
-          #### Terraform Plan \`${{ steps.plan.outcome }}\`
-          #### Terraform Validation \`${{ steps.validate.outcome }}\`
-          
-          <details><summary>Show Plan</summary>
-          \`\`\`\n
-          ${process.env.PLAN}
-          \`\`\`
-          </details>
-
-          *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
-          
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: output
-          })
-    - name: Terraform Plan Status
-      if: steps.plan.outcome == 'failure'
-      run: exit 1
-    - name: Terraform Apply
-      if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
-      shell: bash
-      run: terraform apply --var-file=$TERRAFORM_CONFIG_PATH -auto-approve ${{ github.run_id }}/deploy_plan.tfplan
-      env:
-        TERRAFORM_CONFIG_PATH: ${{ secrets.TERRAFORM_CONFIG_PATH }}
-      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
