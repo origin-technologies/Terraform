@@ -167,11 +167,14 @@ jobs:
         rm -f ${{ env.STAGING_PATH }}/*
     - name: Terraform Plan
       id: plan
-      run: terraform plan -no-color --var-file=$TERRAFORM_CONFIG_PATH --out=${{ env.STAGING_PATH }}/deploy_plan.tfplan
+      run: terraform plan -no-color --var-file=$TERRAFORM_CONFIG_PATH --out=deploy_plan.tfplan
       env:
         TERRAFORM_CONFIG_PATH: ${{ secrets.TERRAFORM_CONFIG_PATH }}
       working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
       continue-on-error: true
+    - name: Copy plan
+      id: copy
+      run: cp deploy_plan.tfplan ${{ env.STAGING_PATH }}  
     - name: Terraform Validate
       id: validate
       run: terraform validate -no-color
