@@ -163,11 +163,11 @@ jobs:
     - name: Setup plan folder
       id: setup
       run: |
-        mkdir -p ${{ TERRAFORM_PLAN_PATH }}
-        rm -f ${{ TERRAFORM_PLAN_PATH }}/*
+        mkdir -p ${{ env.TERRAFORM_PLAN_PATH }}
+        rm -f ${{ env.TERRAFORM_PLAN_PATH }}/*
     - name: Terraform Plan
       id: plan
-      run: terraform plan -no-color --var-file=$TERRAFORM_CONFIG_PATH --out=${{ TERRAFORM_PLAN_PATH }}/deploy_plan.tfplan
+      run: terraform plan -no-color --var-file=$TERRAFORM_CONFIG_PATH --out=${{ env.TERRAFORM_PLAN_PATH }}/deploy_plan.tfplan
       env:
         TERRAFORM_CONFIG_PATH: ${{ secrets.TERRAFORM_CONFIG_PATH }}
       working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
@@ -228,7 +228,7 @@ jobs:
       working-directory: ${{ env.STAGING_PATH }}
     - name: Terraform Apply
       shell: bash
-      run: terraform apply ${{ TERRAFORM_PLAN_PATH }}/deploy_plan.tfplan
+      run: terraform apply ${{ env.TERRAFORM_PLAN_PATH }}/deploy_plan.tfplan
       working-directory: ${{ env.STAGING_PATH }}
     # - name: Creating issue
     #   uses: actions/github-script@0.9.0
