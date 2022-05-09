@@ -207,7 +207,6 @@ jobs:
       run: exit 1 
 
   apply:
-    need: plan
     name: 'Apply'
     runs-on: self-hosted
     environment: ${{ inputs.environment }}
