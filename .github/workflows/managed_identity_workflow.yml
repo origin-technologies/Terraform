@@ -135,6 +135,7 @@ env:
   ARM_USE_MSI: true 
   ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
   ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}   
+  TERRAFORM_PLAN_PATH: ~/plans
 jobs:
   plan:       
     name: 'Plan' 
@@ -159,9 +160,14 @@ jobs:
         STORAGE_CONTAINER_NAME: ${{ secrets.STORAGE_CONTAINER_NAME }}
         STORAGE_RESOURCE_GROUP: ${{ secrets.STORAGE_RESOURCE_GROUP }}
       working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
+    - name: Setup plan folder
+      id: setup
+      run: |
+        mkdir -p ${{ TERRAFORM_PLAN_PATH }}
+        rm -f ${{ TERRAFORM_PLAN_PATH }}/*
     - name: Terraform Plan
       id: plan
-      run: terraform plan -no-color --var-file=$TERRAFORM_CONFIG_PATH --out=deploy_plan.tfplan
+      run: terraform plan -no-color --var-file=$TERRAFORM_CONFIG_PATH --out=${{ TERRAFORM_PLAN_PATH }}/deploy_plan.tfplan
       env:
         TERRAFORM_CONFIG_PATH: ${{ secrets.TERRAFORM_CONFIG_PATH }}
       working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
@@ -199,18 +205,9 @@ jobs:
     - name: Terraform Plan Status
       if: steps.plan.outcome == 'failure'
       run: exit 1 
-    - name: Compress TF Plan artifact
-      shell: bash
-      run: zip -r "${{ github.run_number }}.zip" ./*
-      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: "Terraform deployment plan"
-        path: "${{ env.TERRAFORM_SCRIPTS_PATH }}/${{ github.run_number }}.zip"
-        retention-days: 5
 
   apply:
+    need: plan
     name: 'Apply'
     runs-on: self-hosted
     environment: ${{ inputs.environment }}
@@ -219,15 +216,6 @@ jobs:
       STAGING_PATH: ./staging
     steps:
     - uses: actions/checkout@v2
-    - name: Download Artifact
-      uses: actions/download-artifact@v3
-      with:
-        name: "Terraform deployment plan"
-        path: ${{ env.STAGING_PATH }}
-    - name: Decompress TF Plan artifact
-      shell: bash
-      run: unzip ${{ github.run_number }}.zip
-      working-directory: ${{ env.STAGING_PATH }}
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2.0.0
     - name: Terraform Init
@@ -240,7 +228,7 @@ jobs:
       working-directory: ${{ env.STAGING_PATH }}
     - name: Terraform Apply
       shell: bash
-      run: terraform apply deploy_plan.tfplan
+      run: terraform apply ${{ TERRAFORM_PLAN_PATH }}/deploy_plan.tfplan
       working-directory: ${{ env.STAGING_PATH }}
     # - name: Creating issue
     #   uses: actions/github-script@0.9.0
