@@ -57,7 +57,7 @@ jobs:
     - name: Terraform Plan
       id: plan
       if: ${{ github.event_name == 'pull_request' }}
-      run: terraform plan -no-color --var-file=${{ TERRAFORM_CONFIG_PATH }} --out=${{ github.run_id }}/deploy_plan.tfplan
+      run: terraform plan -no-color --var-file=$TERRAFORM_CONFIG_PATH --out=$github.run_id/deploy_plan.tfplan
       env:
         TERRAFORM_CONFIG_PATH: ${{ secrets.TERRAFORM_CONFIG_PATH }}
       working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
@@ -103,7 +103,7 @@ jobs:
       env:
         TERRAFORM_CONFIG_PATH: ${{ secrets.TERRAFORM_CONFIG_PATH }}
       working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
-      
+
 # name: Provision infrastructure using Terraform
 
 # on:
