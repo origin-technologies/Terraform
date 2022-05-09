@@ -57,8 +57,7 @@ jobs:
     - name: Terraform Plan
       id: plan
       if: ${{ github.event_name == 'pull_request' }}
-      run: | 
-        terraform plan -no-color --var-file=$TERRAFORM_CONFIG_PATH --out=staging/deploy_plan.tfplan
+      run: terraform plan -no-color --var-file=$TERRAFORM_CONFIG_PATH --out=deploy_plan.tfplan
       env:
         TERRAFORM_CONFIG_PATH: ${{ secrets.TERRAFORM_CONFIG_PATH }}
       working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
@@ -100,7 +99,7 @@ jobs:
     - name: Terraform Apply
       if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
       shell: bash
-      run: terraform apply --var-file=$TERRAFORM_CONFIG_PATH -auto-approve staging/deploy_plan.tfplan
+      run: terraform apply --var-file=$TERRAFORM_CONFIG_PATH -auto-approve deploy_plan.tfplan
       env:
         TERRAFORM_CONFIG_PATH: ${{ secrets.TERRAFORM_CONFIG_PATH }}
       working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
