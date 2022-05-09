@@ -1,6 +1,4 @@
-
 name: Provision infrastructure using Terraform
-
 on:
   workflow_call:
     inputs:
@@ -27,12 +25,10 @@ on:
       TERRAFORM_CONFIG_PATH:
         description: 'Terraform configuration filename'
         required: true 
-
 env:  
   ARM_USE_MSI: true 
   ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
   ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}   
-
 jobs:
   terraform:       
     name: 'Terraform' 
@@ -107,7 +103,7 @@ jobs:
       env:
         TERRAFORM_CONFIG_PATH: ${{ secrets.TERRAFORM_CONFIG_PATH }}
       working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
-
+      
 # name: Provision infrastructure using Terraform
 
 # on:
