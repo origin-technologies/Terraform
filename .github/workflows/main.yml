@@ -23,7 +23,7 @@ jobs:
       run: ${{ github.event.pull_request.base.ref }}
   test:
     name: Testing
-    if: github.event.pull_request.base.ref == 'refs/heads/development'
+    if: github.event.pull_request.base.ref == 'development'
     uses: origin-technologies/Terraform/.github/workflows/integration_workflow.yml@main
     with:
       ENVIRONMENT: 'Production'
@@ -37,7 +37,7 @@ jobs:
       STORAGE_CONTAINER_NAME: ${{ secrets.STORAGE_CONTAINER_NAME }}
   deploy:
     name: Deploy
-    if: github.event.pull_request.base.ref == 'refs/heads/main'
+    if: github.event.pull_request.base.ref == 'main'
     uses: origin-technologies/Terraform/.github/workflows/deployment_workflow.yml@main
     with:
       ENVIRONMENT: 'Production'
