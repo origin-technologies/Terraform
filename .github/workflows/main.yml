@@ -20,7 +20,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2     
     - name: Check
-      run: ${{ github.ref }}
+      run: ${{ github.event.pull_request.base.ref }}
   test:
     name: Testing
     if: github.event.pull_request.base.ref == 'refs/heads/development'
