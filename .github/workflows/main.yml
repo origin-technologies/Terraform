@@ -21,7 +21,7 @@ jobs:
     uses: origin-technologies/Terraform/.github/workflows/integration_workflow.yml@main
     with:
       ENVIRONMENT: 'Production'
-      TERRAFORM_SCRIPTS_PATH: './Folder'
+      TERRAFORM_SCRIPTS_PATH: './connectivity'
       TERRAFORM_CONFIG_PATH: 'config.tfvars'
     secrets:
       ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
@@ -35,7 +35,7 @@ jobs:
     uses: origin-technologies/Terraform/.github/workflows/deployment_workflow.yml@main
     with:
       ENVIRONMENT: 'Production'
-      TERRAFORM_SCRIPTS_PATH: './Folder'
+      TERRAFORM_SCRIPTS_PATH: './connectivity'
       TERRAFORM_CONFIG_PATH: 'config.tfvars'
     secrets:
       ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
