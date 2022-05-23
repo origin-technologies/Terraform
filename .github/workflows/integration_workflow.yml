@@ -40,8 +40,6 @@ jobs:
     runs-on: self-hosted
     environment: ${{ inputs.environment }}
     if: ${{ github.actor != 'dependabot[bot]' }}
-    env:
-      TERRAFORM_SCRIPTS_PATH: ./Folder
     steps:
     - uses: actions/checkout@v2
     - uses: hashicorp/setup-terraform@v2
@@ -62,7 +60,9 @@ jobs:
     - name: Terraform create Workspace 
       id: workspace_create
       if: ${{ github.event_name == 'pull_request' }}
-      run: terraform workspace new {{ github.run_id }}
+      run: terraform workspace new $WORKSPACE_NAME
+      env:
+        WORKSPACE_NAME: ${{ github.run_id }}
       working-directory: ${{ inputs.TERRAFORM_SCRIPTS_PATH }}
       continue-on-error: true
     - name: Terraform Validate
@@ -72,6 +72,8 @@ jobs:
     - name: Terraform delete Workspace 
       id: workspace_delete
       if: ${{ github.event_name == 'pull_request' }}
-      run: terraform workspace delete {{ github.run_id }}
+      run: terraform workspace delete $WORKSPACE_NAME
+      env:
+        WORKSPACE_NAME: ${{ github.run_id }}
       working-directory: ${{ inputs.TERRAFORM_SCRIPTS_PATH }}
       continue-on-error: true
