@@ -2,10 +2,18 @@ name: Provision infrastructure using Terraform
 on:
   workflow_call:
     inputs:
-      environment:
+      ENVIRONMENT:
         type: string
         description: Environment to deploy to
         required: true
+      TERRAFORM_SCRIPTS_PATH:
+        type: string
+        description: 'Terraform scripts path'
+        required: true 
+      TERRAFORM_CONFIG_PATH:
+        type: string
+        description: 'Terraform variables filename'
+        required: true 
     secrets:
       ARM_SUBSCRIPTION_ID:
         description: 'Azure subscription ID'
@@ -22,9 +30,6 @@ on:
       STORAGE_CONTAINER_NAME:
         description: 'Container that will store the Terraform state file'
         required: true 
-      TERRAFORM_CONFIG_PATH:
-        description: 'Terraform configuration filename'
-        required: true 
 env:  
   ARM_USE_MSI: true 
   ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
@@ -35,8 +40,6 @@ jobs:
     runs-on: self-hosted
     environment: ${{ inputs.environment }}
     if: ${{ github.actor != 'dependabot[bot]' }}
-    env:
-      TERRAFORM_SCRIPTS_PATH: ./Folder
     steps:
     - uses: actions/checkout@v2
     - uses: hashicorp/setup-terraform@v2
@@ -44,7 +47,7 @@ jobs:
       id: fmt
       run: terraform fmt -check
       continue-on-error: true
-      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
+      working-directory: ${{ inputs.TERRAFORM_SCRIPTS_PATH }}
     - name: Terraform Init
       id: init
       run: | 
@@ -53,19 +56,17 @@ jobs:
         STORAGE_ACCOUNT: ${{ secrets.STORAGE_ACCOUNT }}
         STORAGE_CONTAINER_NAME: ${{ secrets.STORAGE_CONTAINER_NAME }}
         STORAGE_RESOURCE_GROUP: ${{ secrets.STORAGE_RESOURCE_GROUP }}
-      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
+      working-directory: ${{ inputs.TERRAFORM_SCRIPTS_PATH }}
     - name: Terraform Plan
       id: plan
       if: ${{ github.event_name == 'pull_request' }}
-      run: terraform plan -no-color --var-file=$TERRAFORM_CONFIG_PATH --out=deploy_plan.tfplan
-      env:
-        TERRAFORM_CONFIG_PATH: ${{ secrets.TERRAFORM_CONFIG_PATH }}
-      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
+      run: terraform plan -no-color --var-file=${{ inputs.TERRAFORM_CONFIG_PATH }} --out=deploy_plan.tfplan
+      working-directory: ${{ inputs.TERRAFORM_SCRIPTS_PATH }}
       continue-on-error: true
     - name: Terraform Validate
       id: validate
       run: terraform validate -no-color
-      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
+      working-directory: ${{ inputs.TERRAFORM_SCRIPTS_PATH }}
     - name: Update Pull Request
       uses: actions/github-script@v6
       if: ${{ github.event_name == 'pull_request' }}
@@ -98,7 +99,5 @@ jobs:
     - name: Terraform Apply
       if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
       shell: bash
-      run: terraform apply --var-file=$TERRAFORM_CONFIG_PATH -auto-approve
-      env:
-        TERRAFORM_CONFIG_PATH: ${{ secrets.TERRAFORM_CONFIG_PATH }}
-      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
+      run: terraform apply --var-file=${{ inputs.TERRAFORM_CONFIG_PATH }} -auto-approve
+      working-directory: ${{ inputs.TERRAFORM_SCRIPTS_PATH }}
