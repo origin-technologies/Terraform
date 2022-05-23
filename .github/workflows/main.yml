@@ -1,0 +1,43 @@
+name: 'Connectivity subscription'
+on:
+  push:
+    branches: 
+    - main
+    - development
+    paths:
+    - 'connectivity/**'
+  pull_request:
+    branches: 
+    - main
+    - development
+    paths:
+    - 'connectivity/**'
+env:  
+  ARM_USE_MSI: true 
+jobs:
+  test:
+    name: Testing
+    if: github.ref == 'refs/heads/development'
+    uses: origin-technologies/Terraform/.github/workflows/integration_workflow.yml@main
+    with:
+      environment: 'Connectivity production'
+    secrets:
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}    
+      STORAGE_RESOURCE_GROUP: ${{ secrets.STORAGE_RESOURCE_GROUP }}
+      STORAGE_ACCOUNT: ${{ secrets.STORAGE_ACCOUNT }}
+      STORAGE_CONTAINER_NAME: ${{ secrets.STORAGE_CONTAINER_NAME }}
+      TERRAFORM_CONFIG_PATH: ${{ secrets.TERRAFORM_CONFIG_PATH }}
+  deploy:
+    name: Deploy
+    if: github.ref == 'refs/heads/main'
+    uses: origin-technologies/Terraform/.github/workflows/deployment_workflow.yml@main
+    with:
+      environment: 'Connectivity production'
+    secrets:
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}    
+      STORAGE_RESOURCE_GROUP: ${{ secrets.STORAGE_RESOURCE_GROUP }}
+      STORAGE_ACCOUNT: ${{ secrets.STORAGE_ACCOUNT }}
+      STORAGE_CONTAINER_NAME: ${{ secrets.STORAGE_CONTAINER_NAME }}
+      TERRAFORM_CONFIG_PATH: ${{ secrets.TERRAFORM_CONFIG_PATH }}

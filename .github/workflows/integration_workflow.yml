@@ -1,0 +1,72 @@
+name: Provision infrastructure using Terraform
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        description: Environment to deploy to
+        required: true
+    secrets:
+      ARM_SUBSCRIPTION_ID:
+        description: 'Azure subscription ID'
+        required: true
+      ARM_TENANT_ID:
+        description: 'Azure tenant ID'
+        required: true
+      STORAGE_RESOURCE_GROUP:
+        description: 'Resource group with the storage account that will be used as Terraform backend'
+        required: true
+      STORAGE_ACCOUNT:
+        description: 'Storage account that will store the Terraform state file'
+        required: true
+      STORAGE_CONTAINER_NAME:
+        description: 'Container that will store the Terraform state file'
+        required: true 
+      TERRAFORM_CONFIG_PATH:
+        description: 'Terraform configuration filename'
+        required: true 
+env:  
+  ARM_USE_MSI: true 
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}   
+jobs:
+  terraform:       
+    name: 'Terraform' 
+    runs-on: self-hosted
+    environment: ${{ inputs.environment }}
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    env:
+      TERRAFORM_SCRIPTS_PATH: ./Folder
+    steps:
+    - uses: actions/checkout@v2
+    - uses: hashicorp/setup-terraform@v2
+    - name: Terraform fmt
+      id: fmt
+      run: terraform fmt -check
+      continue-on-error: true
+      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
+    - name: Terraform Init
+      id: init
+      run: | 
+        terraform init -backend-config="storage_account_name=$STORAGE_ACCOUNT" -backend-config="container_name=$STORAGE_CONTAINER_NAME" -backend-config="resource_group_name=$STORAGE_RESOURCE_GROUP"
+      env:
+        STORAGE_ACCOUNT: ${{ secrets.STORAGE_ACCOUNT }}
+        STORAGE_CONTAINER_NAME: ${{ secrets.STORAGE_CONTAINER_NAME }}
+        STORAGE_RESOURCE_GROUP: ${{ secrets.STORAGE_RESOURCE_GROUP }}
+      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
+    - name: Terraform create Workspace 
+      id: workspace_create
+      if: ${{ github.event_name == 'pull_request' }}
+      run: terraform workspace new {{ github.run_id }}
+      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
+      continue-on-error: true
+    - name: Terraform Validate
+      id: validate
+      run: terraform validate -no-color
+      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
+    - name: Terraform delete Workspace 
+      id: workspace_delete
+      if: ${{ github.event_name == 'pull_request' }}
+      run: terraform workspace delete {{ github.run_id }}
+      working-directory: ${{ env.TERRAFORM_SCRIPTS_PATH }}
+      continue-on-error: true
