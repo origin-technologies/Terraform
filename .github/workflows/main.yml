@@ -1,11 +1,10 @@
 name: 'Connectivity subscription'
 on:
-  # push:
-  #   branches: 
-  #   - main
-  #   - development
-  #   paths:
-  #   - 'connectivity/**'
+  push:
+    branches: 
+    - main
+    paths:
+    - 'connectivity/**'
   pull_request:
     branches: 
     - main
