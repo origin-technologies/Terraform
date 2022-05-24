@@ -15,9 +15,6 @@ on:
         description: 'Terraform variables filename'
         required: true 
     secrets:
-      AZURE_CREDENTIALS:
-        description: 'Azure credentials
-        required: true
       ARM_SUBSCRIPTION_ID:
         description: 'Azure subscription ID'
         required: true
@@ -40,17 +37,12 @@ env:
 jobs:
   terraform:       
     name: 'Terraform' 
-    # runs-on: self-hosted
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     environment: ${{ inputs.environment }}
     if: ${{ github.actor != 'dependabot[bot]' }}
     steps:
     - uses: actions/checkout@v2
     - uses: hashicorp/setup-terraform@v2
-    # This step is not necessary with a manage identity
-    - uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
     - name: Terraform fmt
       id: fmt
       run: terraform fmt -check
