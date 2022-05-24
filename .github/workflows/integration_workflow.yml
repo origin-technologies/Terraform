@@ -37,7 +37,8 @@ env:
 jobs:
   terraform:       
     name: 'Terraform' 
-    runs-on: self-hosted
+    # runs-on: self-hosted
+    runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     if: ${{ github.actor != 'dependabot[bot]' }}
     env:
