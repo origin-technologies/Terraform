@@ -15,6 +15,12 @@ on:
 env:  
   ARM_USE_MSI: true 
 jobs:
+  sample:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2     
+    - name: Check
+      run: ${{ github.ref }}
   test:
     name: Testing
     if: github.event.pull_request.base.ref == 'development'
