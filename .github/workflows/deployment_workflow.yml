@@ -60,7 +60,9 @@ jobs:
     - name: Terraform Plan
       id: plan
       if: ${{ github.event_name == 'pull_request' }}
-      run: terraform plan -no-color --var-file=${{ inputs.TERRAFORM_CONFIG_PATH }} --out=deploy_plan.tfplan
+      run: terraform plan -no-color --var-file=$TERRAFORM_CONFIG_PATH --out=deploy_plan.tfplan
+      env:
+        TERRAFORM_CONFIG_PATH: ${{ inputs.TERRAFORM_CONFIG_PATH }}
       working-directory: ${{ inputs.TERRAFORM_SCRIPTS_PATH }}
       continue-on-error: true
     - name: Terraform Validate
